@@ -722,7 +722,8 @@ func TestReflector_Reflect_inclineScalar(t *testing.T) {
 	type Symbol string
 
 	type topTracesInput struct {
-		RootSymbol Symbol `json:"rootSymbol" minLength:"5" example:"my_func" default:"main()"`
+		RootSymbol  Symbol `json:"rootSymbol" minLength:"5" example:"my_func" default:"main()"`
+		RootSymbol2 Symbol `json:"rootSymbol2" minLength:"5" example:"my_second_func" default:"main()"`
 	}
 
 	r := jsonschema.Reflector{}
@@ -730,7 +731,8 @@ func TestReflector_Reflect_inclineScalar(t *testing.T) {
 	require.NoError(t, err)
 	assertjson.EqualMarshal(t, []byte(`{
 	  "properties":{
-		"rootSymbol":{"default":"main()","examples":["my_func"],"minLength":5,"type":"string"}
+		"rootSymbol":{"default":"main()","examples":["my_func"],"minLength":5,"type":"string"},
+		"rootSymbol2":{"default":"main()","examples":["my_second_func"],"minLength":5,"type":"string"}
 	  },
 	  "type":"object"
 	}`), s)
@@ -2079,7 +2081,8 @@ func (d *Discover) Enum() []interface{} {
 
 func TestReflector_Reflect_ptrDefault(t *testing.T) {
 	type NewThing struct {
-		DiscoverMode *Discover `json:"discover,omitempty" default:"all"`
+		DiscoverMode  *Discover `json:"discover,omitempty" default:"all"`
+		DiscoverMode2 *Discover `json:"discover2,omitempty" default:"all"`
 	}
 
 	r := jsonschema.Reflector{}
@@ -2091,7 +2094,8 @@ func TestReflector_Reflect_ptrDefault(t *testing.T) {
 		"JsonschemaGoTestDiscover":{"enum":["all","none"],"type":["null","string"]}
 	  },
 	  "properties":{
-		"discover":{"$ref":"#/definitions/JsonschemaGoTestDiscover","default":"all"}
+		"discover":{"$ref":"#/definitions/JsonschemaGoTestDiscover","default":"all"},
+		"discover2":{"$ref":"#/definitions/JsonschemaGoTestDiscover","default":"all"}
 	  },
 	  "type":"object"
 	}`, s)
