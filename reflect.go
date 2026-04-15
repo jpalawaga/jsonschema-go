@@ -1218,9 +1218,20 @@ func (r *Reflector) walkProperties(v reflect.Value, parent *Schema, rc *ReflectC
 			reflectEnum(rc, &propertySchema, "", field.Tag, fieldVal)
 		}
 
-		// Remove temporary kept type from referenced schema.
+		// Remove temporary kept type from referenced schema and wrap local keywords
+		// around references to avoid draft-07 "$ref" sibling semantics.
 		if propertySchema.Ref != nil {
 			propertySchema.Type = nil
+
+			if hasRefSiblings(&propertySchema) {
+				refSchema := Schema{
+					Ref:         propertySchema.Ref,
+					ReflectType: propertySchema.ReflectType,
+				}
+
+				propertySchema.Ref = nil
+				propertySchema.AllOf = append([]SchemaOrBool{refSchema.ToSchemaOrBool()}, propertySchema.AllOf...)
+			}
 		}
 
 		if rc.interceptProp != nil {
@@ -1320,6 +1331,25 @@ func checkInlineValue(propertySchema *Schema, rc *ReflectContext, field reflect.
 	}
 
 	return nil
+}
+
+func hasRefSiblings(schema *Schema) bool {
+	if schema == nil || schema.Ref == nil {
+		return false
+	}
+
+	c := *schema
+	c.Ref = nil
+	c.Type = nil
+	c.ReflectType = nil
+	c.Parent = nil
+
+	j, err := json.Marshal(c)
+	if err != nil {
+		return true
+	}
+
+	return string(j) != "{}"
 }
 
 // checkNullability checks Go semantic conditions and adds null type to schemas when appropriate.
